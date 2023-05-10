@@ -1,37 +1,44 @@
 import os
 from torch.utils.data import Dataset
 from skimage import io
-
-
-ROOT_LEFT = 'D:/StereoDrivingDataset/left/'
-ROOT_RIGHT = 'D:/StereoDrivingDataset/right/'
-ROOT_DISPARITY = 'D:/StereoDrivingDataset/disparity/'
+import numpy as np
 
 
 class StereoDataset(Dataset):
     """Custom pytorch dataset class implementation for Stereo Driving dataset."""
-    def __init__(self, transform):
-        assert len(os.listdir(ROOT_LEFT)) == len(os.listdir(ROOT_RIGHT)) == len(os.listdir(ROOT_DISPARITY))
-        self.left = sorted(os.listdir(ROOT_LEFT))
-        self.right = sorted(os.listdir(ROOT_RIGHT))
-        self.disparity = sorted(os.listdir(ROOT_DISPARITY))
+    def __init__(self, dir_left, dir_right, dir_disparity, transform, disp_transform):
+        assert len(os.listdir(dir_left)) == len(os.listdir(dir_right)) == len(os.listdir(dir_disparity))
+        self.dir_left = dir_left
+        self.dir_right = dir_right
+        self.dir_disparity = dir_disparity
+
+        self.left = sorted(os.listdir(dir_left))
+        self.right = sorted(os.listdir(dir_right))
+        self.disparity = sorted(os.listdir(dir_disparity))
         self.transform = transform
+        self.disp_transform = disp_transform
 
     def __len__(self):
-        return len(os.listdir(ROOT_LEFT))
+        return len(self.left)
 
     def __getitem__(self, idx):
         # Left
-        left_img = io.imread(ROOT_LEFT + self.left[idx])
-        left = self.transform(left_img)
+        left_image = io.imread(self.dir_left + self.left[idx])
+        left_image = self.transform(left_image)
 
         # Right
-        right_img = io.imread(ROOT_RIGHT + self.right[idx])
-        right = self.transform(right_img)
+        right_image = io.imread(self.dir_right + self.right[idx])
+        right_image = self.transform(right_image)
 
         # Disparity
-        disparity_img = io.imread(ROOT_DISPARITY + self.disparity[idx])
-        disparity = disparity_img.astype(np.float32) / 256.
-        disparity = self.transform(disparity)
+        disparity_img = io.imread(self.dir_disparity + self.disparity[idx])
+        disparity = np.ascontiguousarray(disparity_img, dtype=np.float32) / 256.0
+        disparity = self.disp_transform(disparity)
 
-        return left, right, disparity
+        sample = {
+            'left_image': left_image,
+            'right_image': right_image,
+            'disparity': disparity,
+        }
+
+        return sample
