@@ -10,12 +10,14 @@ def rate(pred, target, mask, threshold):
     rate = error / count * 100
     return torch.mean(rate[count > 0])
 
+
 def epe(pred, target, mask):
     error = torch.abs(target - pred) * mask
     error = torch.flatten(error, 1).sum(-1)
     count = torch.flatten(mask, 1).sum(-1)
     epe = error / count
     return epe[count > 0]
+
 
 def bad(pred_depth, true_depth, thresholds):
     abs_diff = torch.abs(pred_depth - true_depth)
@@ -24,6 +26,7 @@ def bad(pred_depth, true_depth, thresholds):
     bad_pixels = int(num_pixels * thresholds)
     bad = torch.mean(sorted_diff[-bad_pixels:] ** 2)
     return bad
+
 
 def rmse(predictions, targets):
     rmse = ((predictions - targets) ** 2).mean().sqrt()

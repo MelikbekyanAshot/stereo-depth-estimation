@@ -15,4 +15,6 @@ N_CHANNELS = 3
 BATCH_SIZE = 16
 MAX_DISP = 192
 LEARNING_RATE = 1e-3
-K, P, S = 3, 3, 7
+K = (3, 3, 7)
+P = (1, 1, 3)
+S = 1
