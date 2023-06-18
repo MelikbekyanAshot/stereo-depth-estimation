@@ -1,7 +1,8 @@
-from constants import TRAIN_LEFT, TRAIN_RIGHT, TRAIN_DISPARITY, TEST_RIGHT, TEST_LEFT, TEST_DISPARITY, \
+from source.constants import TRAIN_LEFT, TRAIN_RIGHT, TRAIN_DISPARITY, TEST_RIGHT, TEST_LEFT, TEST_DISPARITY, \
     IMG_WIDTH, IMG_HEIGHT, BATCH_SIZE
+from source.model import DepthMap
+
 from dataset.stereo_dataset import StereoDataset
-from model import DepthMap
 
 from torch.utils.data import DataLoader
 
@@ -13,25 +14,26 @@ from pytorch_lightning.loggers import WandbLogger
 import wandb
 
 
+transforms = tfs.Compose([
+    tfs.ToPILImage(),
+    tfs.Resize(IMG_WIDTH),
+    tfs.CenterCrop((IMG_HEIGHT, IMG_WIDTH)),
+    tfs.ToTensor(),
+])
+disp_transforms = tfs.Compose([
+    tfs.ToPILImage(),
+    tfs.Resize((IMG_HEIGHT, IMG_WIDTH)),
+    tfs.CenterCrop((IMG_HEIGHT, IMG_WIDTH)),
+    tfs.ToTensor(),
+])
+
+
 if __name__ == '__main__':
     model = DepthMap()
 
     wandb_logger = WandbLogger(
         project='depth-map-estimation',
         name='Linknet(resnet50), k=(3x3x7), img=64x128')
-
-    transforms = tfs.Compose([
-        tfs.ToPILImage(),
-        tfs.Resize(IMG_WIDTH),
-        tfs.CenterCrop((IMG_HEIGHT, IMG_WIDTH)),
-        tfs.ToTensor(),
-    ])
-    disp_transforms = tfs.Compose([
-        tfs.ToPILImage(),
-        tfs.Resize((IMG_HEIGHT, IMG_WIDTH)),
-        tfs.CenterCrop((IMG_HEIGHT, IMG_WIDTH)),
-        tfs.ToTensor(),
-    ])
 
     train_stereo_ds = StereoDataset(dir_left=TRAIN_LEFT, dir_right=TRAIN_RIGHT,
                                     dir_disparity=TRAIN_DISPARITY,
